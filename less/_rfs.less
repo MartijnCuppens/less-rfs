@@ -14,6 +14,7 @@
 
 // Breakpoint at where font-size starts decreasing if screen width is smaller.
 @rfs-breakpoint: 1200px;
+@rfs-breakpoint-unit: px;
 
 // Resize font-size based on screen height and width.
 @rfs-two-dimensional: true;
@@ -42,44 +43,161 @@
   }
 }
 
-.rfs-prefix(@fs, @prefix) {
+.rfs-prefix(@fs, @suffix) {
 
   & when ((not(isnumber(@fs)) and not(isunit(@fs, px)) and not(isunit(@fs, rem))) or (@fs = 0)) {
-    font-size: @fs@prefix;
+    font-size: @fs @suffix;
   }
 
   & when (((isnumber(@fs)) and (get-unit(@fs) = e(''))) or (isunit(@fs, px)) or (isunit(@fs, rem))) {
-    .rfs-render-base(@fs, @prefix);
+    .rfs-render-base(@fs, @suffix);
   }
 }
 
-.rfs-render-base(@fs, @prefix) {
+.rfs-render-base(@fs, @suffix) {
 
   & when ((isnumber(@fs)) and (get-unit(@fs) = e(''))) {
-    .rfs-render-base-number(@fs, @prefix);
+    .rfs-render-base-number(@fs, @suffix);
+    .rfs-render-media-query(@fs, @suffix);
   }
 
   & when ((isunit(@fs, px))) {
-    .rfs-render-base-number((@fs/1px), @prefix);
+    .rfs-render-base-number(unit(@fs), @suffix);
+    .rfs-render-media-query(unit(@fs), @suffix);
   }
 
   & when ((isunit(@fs, rem))) {
-    .rfs-render-base-number((@fs/.0625rem), @prefix);
+    .rfs-render-base-number(unit(@fs/.0625), @suffix);
+    .rfs-render-media-query(unit(@fs/.0625), @suffix);
   }
 }
 
-.rfs-render-base-number(@fs, @prefix) {
+.rfs-render-media-query(@fs, @suffix) {
+  & when ((@fs > @rfs-minimum-font-size) and (@rfs-factor > 1) and (@enable-responsive-font-sizes = true)) {
+
+    & when ((isnumber(@rfs-breakpoint)) and (get-unit(@rfs-breakpoint) = e(''))) {
+      .rfs-render-media-query-breakpoint(@fs, @suffix, @rfs-breakpoint);
+    }
+
+    & when ((isunit(@rfs-breakpoint, px))) {
+      .rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint));
+    }
+
+    & when ((isunit(@rfs-breakpoint, rem))) {
+      .rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * 16));
+    }
+
+    & when ((isunit(@rfs-breakpoint, em))) {
+      .rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * 16));
+    }
+  }
+}
+
+.rfs-render-media-query-breakpoint(@fs, @suffix, @breakpoint) {
+  & when (@rfs-two-dimensional) {
+    .rfs-render-media-query-two-dimensional(@fs, @suffix, @breakpoint);
+  }
+  & when (not(@rfs-two-dimensional)) {
+    .rfs-render-media-query-one-dimension(@fs, @suffix, @breakpoint);
+  }
+}
+
+.rfs-render-media-query-one-dimension(@fs, @suffix, @breakpoint) {
+  & when (@rfs-breakpoint-unit = px) {
+    @media (max-width: @breakpoint * 1px) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+
+  & when (@rfs-breakpoint-unit = rem) {
+    @media (max-width: @breakpoint * .0625rem) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+
+  & when (@rfs-breakpoint-unit = em) {
+    @media (max-width: @breakpoint * .0625em) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+}
+
+.rfs-render-media-query-two-dimensional(@fs, @suffix, @breakpoint) {
+  & when (@rfs-breakpoint-unit = px) {
+    @media (max-width: unit(@breakpoint, px)), (max-height: unit(@breakpoint, px)) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+
+  & when (@rfs-breakpoint-unit = rem) {
+    @media (max-width: unit((@breakpoint * .0625), rem)), (max-height: unit((@breakpoint * .0625), rem)) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+
+  & when (@rfs-breakpoint-unit = em) {
+    @media (max-width: unit((@breakpoint * .0625), em)), (max-height: unit((@breakpoint * .0625), em)) {
+      .rfs-render-media-query-content(@fs, @suffix, @breakpoint);
+    }
+  }
+}
+
+.rfs-render-media-query-content(@fs, @suffix, @breakpoint) {
+  & when (@rfs-two-dimensional) {
+    // Calculate minimum font-size for given font-size.
+    @fs-min: @rfs-minimum-font-size + (@fs - @rfs-minimum-font-size) / @rfs-factor;
+    // Calculate difference between given font-size and minimum font-size for given font-size.
+    @fs-variable-width: unit((@fs - @fs-min) / @breakpoint, vmin);
+
+    .rfs-render-fluid(@fs-min, @fs-variable-width, @suffix);
+  }
+
+  & when (not(@rfs-two-dimensional)) {
+    // Calculate minimum font-size for given font-size.
+    @fs-min: @rfs-minimum-font-size + (@fs - @rfs-minimum-font-size) / @rfs-factor;
+    // Calculate difference between given font-size and minimum font-size for given font-size.
+    @fs-variable-width: unit((@fs - @fs-min) / @breakpoint, vw);
+
+    .rfs-render-fluid(@fs-min, @fs-variable-width, @suffix);
+  }
+}
+
+.rfs-render-fluid(@fs-min, @fs-variable-width, @suffix) {
 
   & when (@rfs-font-size-unit = px) {
-    font-size: @fs * 1px@prefix;
+    font-size: calc(unit(@fs-min, px) e('+') @fs-variable-width)@suffix;
   }
 
   & when (@rfs-font-size-unit = rem) {
-    font-size: @fs * .0625rem@prefix;
+    font-size: calc(unit(@fs-min / 16, rem) e('+') @fs-variable-width)@suffix;
+  }
+}
+
+.rfs-render-base-number(@fs, @suffix) {
+
+  & when (@rfs-font-size-unit = px) {
+    font-size: @fs * 1px@suffix;
+  }
+
+  & when (@rfs-font-size-unit = rem) {
+    font-size: @fs * .0625rem@suffix;
   }
 }
 
 // The responsive-font-size mixin uses RFS to rescale font sizes.
 .responsive-font-size(@fs, @important: false) {
   .rfs(@fs, @important);
+}
+
+.title-1{
+  .responsive-font-size(80);
+}
+
+
+.title-2{
+  .responsive-font-size(5rem);
+}
+
+.title-3{
+  .responsive-font-size(80px, true);
 }
