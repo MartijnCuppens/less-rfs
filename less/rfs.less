@@ -8,7 +8,7 @@
 
 // Configuration.
 
-// Minimum fontsize.
+// Minimum font size.
 @rfs-minimum-font-size: 1rem;
 @rfs-font-size-unit: rem;
 
@@ -17,13 +17,13 @@
 @rfs-breakpoint-unit: px;
 
 // Resize font-size based on screen height and width.
-@rfs-two-dimensional: true;
+@rfs-two-dimensional: false;
 
 // Factor of decrease.
 @rfs-factor: 5;
 
 // Generate disable classes
-@rfs-generate-disable-classes: false;
+@rfs-generate-disable-classes: true;
 
 // 1 rem = @rfs-rem-value px.
 @rfs-rem-value: 16;
@@ -84,11 +84,11 @@
     }
 
     & when ((isunit(@rfs-breakpoint, rem))) {
-      ._rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * 16));
+      ._rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * @rfs-rem-value));
     }
 
     & when ((isunit(@rfs-breakpoint, em))) {
-      ._rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * 16));
+      ._rfs-render-media-query-breakpoint(@fs, @suffix, unit(@rfs-breakpoint * @rfs-rem-value));
     }
   }
 }
@@ -104,19 +104,19 @@
 
 ._rfs-render-media-query-one-dimension(@fs, @suffix, @breakpoint) {
   & when (@rfs-breakpoint-unit = px) {
-    @media (max-width: @breakpoint * 1px) {
+    @media (max-width: unit(@breakpoint, px)) {
       ._rfs-render-media-query-content(@fs, @suffix, @breakpoint);
     }
   }
 
   & when (@rfs-breakpoint-unit = rem) {
-    @media (max-width: @breakpoint * .0625rem) {
+    @media (max-width: unit((@breakpoint / @rfs-rem-value), rem)) {
       ._rfs-render-media-query-content(@fs, @suffix, @breakpoint);
     }
   }
 
   & when (@rfs-breakpoint-unit = em) {
-    @media (max-width: @breakpoint * .0625em) {
+    @media (max-width: unit((@breakpoint / @rfs-rem-value), em)) {
       ._rfs-render-media-query-content(@fs, @suffix, @breakpoint);
     }
   }
@@ -130,22 +130,36 @@
   }
 
   & when (@rfs-breakpoint-unit = rem) {
-    @media (max-width: unit((@breakpoint * .0625), rem)), (max-height: unit((@breakpoint * .0625), rem)) {
+    @media (max-width: unit((@breakpoint / @rfs-rem-value), rem)), (max-height: unit((@breakpoint / @rfs-rem-value), rem)) {
       ._rfs-render-media-query-content(@fs, @suffix, @breakpoint);
     }
   }
 
   & when (@rfs-breakpoint-unit = em) {
-    @media (max-width: unit((@breakpoint * .0625), em)), (max-height: unit((@breakpoint * .0625), em)) {
+    @media (max-width: unit((@breakpoint / @rfs-rem-value), em)), (max-height: unit((@breakpoint / @rfs-rem-value), em)) {
       ._rfs-render-media-query-content(@fs, @suffix, @breakpoint);
     }
   }
 }
 
 ._rfs-render-media-query-content(@fs, @suffix, @breakpoint) {
+  & when ((isnumber(@rfs-minimum-font-size)) and (get-unit(@rfs-minimum-font-size) = e(''))) {
+    ._rfs-render-media-query-content-dimensional(@fs, @suffix, @rfs-minimum-font-size, @breakpoint);
+  }
+
+  & when ((isunit(@rfs-minimum-font-size, px))) {
+    ._rfs-render-media-query-content-dimensional(@fs, @suffix, unit(@rfs-minimum-font-size), @breakpoint);
+  }
+
+  & when ((isunit(@rfs-minimum-font-size, rem))) {
+    ._rfs-render-media-query-content-dimensional(@fs, @suffix, unit(@rfs-minimum-font-size * @rfs-rem-value), @breakpoint);
+  }
+}
+
+._rfs-render-media-query-content-dimensional(@fs, @suffix, @rfs-min, @breakpoint) {
   & when (@rfs-two-dimensional) {
     // Calculate minimum font-size for given font-size.
-    @fs-min: @rfs-minimum-font-size + (@fs - @rfs-minimum-font-size) / @rfs-factor;
+    @fs-min: @rfs-min + (@fs - @rfs-min) / @rfs-factor;
     // Calculate difference between given font-size and minimum font-size for given font-size.
     @fs-variable-width: unit((@fs - @fs-min) / (@breakpoint / 100), vmin);
 
@@ -154,7 +168,7 @@
 
   & when (not(@rfs-two-dimensional)) {
     // Calculate minimum font-size for given font-size.
-    @fs-min: @rfs-minimum-font-size + (@fs - @rfs-minimum-font-size) / @rfs-factor;
+    @fs-min: @rfs-min + (@fs - @rfs-min) / @rfs-factor;
     // Calculate difference between given font-size and minimum font-size for given font-size.
     @fs-variable-width: unit((@fs - @fs-min) / (@breakpoint / 100), vw);
 
@@ -169,18 +183,18 @@
   }
 
   & when (@rfs-font-size-unit = rem) {
-    font-size: calc(unit(@fs-min / 16, rem) e('+') @fs-variable-width)@suffix;
+    font-size: calc(unit(@fs-min / @rfs-rem-value, rem) e('+') @fs-variable-width)@suffix;
   }
 }
 
 ._rfs-render-base-number(@fs, @suffix) {
 
   & when (@rfs-font-size-unit = px) {
-    font-size: @fs * 1px@suffix;
+    font-size: unit(@fs, px)@suffix;
   }
 
   & when (@rfs-font-size-unit = rem) {
-    font-size: @fs * .0625rem@suffix;
+    font-size: unit((@fs / @rfs-rem-value), rem)@suffix;
   }
 }
 

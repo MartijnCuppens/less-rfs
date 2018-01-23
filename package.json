@@ -1,6 +1,6 @@
 {
-  "name": "rfs",
-  "version": "0.0.1",
+  "name": "less-rfs",
+  "version": "0.0.2",
   "description": "A less mixin for responsive font-sizes.",
   "main": "less/rfs.less",
   "scripts": {
