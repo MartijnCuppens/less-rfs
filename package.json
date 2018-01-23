@@ -1,14 +1,14 @@
 {
   "name": "rfs",
-  "version": "7.0.2",
-  "description": "A scss-mixin for responsive font-sizes.",
-  "main": "scss/_rfs.scss",
+  "version": "0.0.1",
+  "description": "A less mixin for responsive font-sizes.",
+  "main": "less/rfs.less",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MartijnCuppens/rfs.git"
+    "url": "git+https://github.com/MartijnCuppens/less-rfs.git"
   },
   "keywords": [
     "scss",
@@ -19,7 +19,7 @@
   "author": "Martijn Cuppens <martijn.cuppens@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MartijnCuppens/rfs/issues"
+    "url": "https://github.com/MartijnCuppens/less-rfs/issues"
   },
-  "homepage": "https://github.com/MartijnCuppens/rfs#readme"
+  "homepage": "https://github.com/MartijnCuppens/less-rfs#readme"
 }
